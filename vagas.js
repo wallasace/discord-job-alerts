@@ -58,7 +58,7 @@ const DEFAULTS = {
     "outreach", "influencer", "presenter", "on-camera", "on camera", "model for", "sales", "recruiter", "customer support",
   ],
   checkMinutes: 15,
-  delayBetweenSubsSeconds: 6,
+  delayBetweenSubsSeconds: 20,
 };
 
 function loadConfig() {
@@ -126,7 +126,7 @@ async function fetchSub(sub) {
     const res = await fetch(`https://www.reddit.com/r/${sub}/new/.rss?limit=50`, {
       headers: { "User-Agent": "vagas-gamedev-watcher/1.0 (personal job alerts)" },
     });
-    if (res.status === 429 && attempt === 0) { await sleep(30000); continue; } // limite do Reddit: espera e tenta de novo
+    if (res.status === 429 && attempt === 0) { await sleep(60000); continue; } // limite do Reddit: espera e tenta de novo
     if (!res.ok) throw new Error(`r/${sub}: HTTP ${res.status}`);
     return parseFeed(await res.text());
   }
