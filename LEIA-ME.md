@@ -27,3 +27,12 @@ Edite `config.json` (os padrões ficam em `vagas.js`, em `DEFAULTS`):
 
 ## Alerta no celular
 No app do Discord, segure o canal `#vagas` > **Notificações** > **Todas as mensagens**.
+
+## Na nuvem (sempre ativo)
+O monitor roda sozinho a cada 15 minutos no GitHub Actions, mesmo com o PC desligado:
+https://github.com/wallasace/discord-job-alerts/actions
+
+- Os webhooks ficam no Secret `CONFIG_JSON` do repositório (Settings > Secrets and variables > Actions).
+- **Não rode o `rodar.bat` ao mesmo tempo**: o PC e a nuvem têm listas de "vistas" separadas e as vagas sairiam duplicadas.
+- Para pausar: aba Actions > "Job alerts" > "..." > Disable workflow.
+- O GitHub desliga agendamentos de repositórios públicos após 60 dias sem nenhum commit. Os commits automáticos do `seen.json` mantêm o repositório ativo enquanto houver vagas novas; se o workflow for desligado, é só reativar na aba Actions.
