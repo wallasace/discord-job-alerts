@@ -1,0 +1,42 @@
+name: Job alerts
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # a cada 15 minutos (o GitHub pode atrasar alguns minutos)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Só testar (não posta no Discord)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # para salvar o seen.json de volta no repositório
+
+concurrency:
+  group: job-alerts
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check Reddit and post jobs
+        env:
+          CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
+        run: node vagas.js ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: Save seen jobs
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "job-alerts-bot"
+          git config user.email "job-alerts-bot@users.noreply.github.com"
+          git add seen.json
+          git diff --cached --quiet || (git commit -m "Update seen jobs" && git push)

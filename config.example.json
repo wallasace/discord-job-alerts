@@ -1,0 +1,5 @@
+{
+  "webhookUrl": "COLE_AQUI_O_WEBHOOK_DO_SEU_CANAL",
+  "subreddits": ["gameDevClassifieds", "forhire"],
+  "checkMinutes": 15
+}
