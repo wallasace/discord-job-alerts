@@ -220,6 +220,7 @@ async function checkOnce(cfg) {
     if (i > 0) await sleep(cfg.delayBetweenSubsSeconds * 1000);
     let entries;
     try { entries = await fetchSub(sub); } catch (e) { console.error(`  ${e.message}`); continue; }
+    console.log(`  r/${sub}: ${entries.length} posts lidos`);
 
     // Mais antigas primeiro, para os canais ficarem em ordem cronológica
     for (const entry of entries.reverse()) {
