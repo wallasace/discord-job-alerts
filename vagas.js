@@ -28,26 +28,29 @@ const AREAS = {
   audiovisual: ["video editor", "video editing", "editor", "motion graphics", "motion designer", "after effects", "premiere", "davinci", "vfx", "trailer", "youtube", "sound designer", "sound design", "audio", "music", "composer", "sfx"],
   design: ["ui", "ux", "ui/ux", "graphic designer", "graphic design", "logo", "branding", "illustrator", "illustration", "concept art", "concept artist", "2d artist", "pixel art", "pixel artist", "figma", "icon", "icons", "sprite", "sprites"],
   ai: ["ai", "a.i.", "artificial intelligence", "machine learning", "llm", "gpt", "chatgpt", "stable diffusion", "comfyui", "midjourney", "generative", "prompt engineer"],
+  mobile: ["mobile", "mobile game", "android", "ios", "iphone", "ipad", "hyper casual", "hypercasual", "hyper-casual", "hybrid casual", "casual game", "play store", "google play", "app store", "admob", "unity ads", "in-app purchases", "iap", "tap game", "idle game", "puzzle game"],
 };
+
+// Áreas que você atende; as outras (animação, audiovisual, design) são descartadas
+const WANTED = ["threeD", "programming", "ai"];
+const UNWANTED = ["animation", "audiovisual", "design"];
 
 // Ordem de prioridade: a vaga vai para o PRIMEIRO canal que combinar
 const ROUTING = [
+  // Jogo mobile, de programação, 3D ou sem área definida (o mais importante)
+  { key: "mobile-games", label: "Mobile game", test: (a) => a.game && a.mobile && (WANTED.some((s) => a[s]) || !UNWANTED.some((s) => a[s])) },
   { key: "3d-games", label: "3D for games", test: (a) => a.threeD && a.game },
   { key: "game-dev", label: "Game dev", test: (a) => a.programming && a.game },
-  { key: "animation-mocap", label: "Animation / mocap", test: (a) => a.animation },
-  { key: "3d-cgi", label: "3D / CGI", test: (a) => a.threeD },
   { key: "ai", label: "AI", test: (a) => a.ai },
-  { key: "audiovisual", label: "Audiovisual", test: (a) => a.audiovisual },
-  { key: "design-2d", label: "Design / 2D", test: (a) => a.design },
   { key: "programming", label: "Programming", test: (a) => a.programming },
 ];
 
-const AREA_LABELS = { game: "Games", threeD: "3D", programming: "Programming", animation: "Animation", audiovisual: "Audiovisual", design: "Design", ai: "AI" };
+const AREA_LABELS = { game: "Games", mobile: "Mobile", threeD: "3D", programming: "Programming", animation: "Animation", audiovisual: "Audiovisual", design: "Design", ai: "AI" };
 
 const DEFAULTS = {
-  webhookUrl: "",   // canal de "outras vagas"
-  routes: {},       // { "3d-games": "https://discord.com/api/webhooks/...", ... }
-  subreddits: ["gameDevClassifieds", "forhire", "DesignJobs"],
+  webhookUrl: "",   // canal de "outras vagas de jogos"
+  routes: {},       // { "mobile-games": "https://discord.com/api/webhooks/...", ... }
+  subreddits: ["gameDevClassifieds", "gamedevjobs", "INAT", "forhire"],
   // Só vagas de quem está contratando (título)
   hiringTags: ["[hiring]", "[paid]", "[paid work]", "[task]", "hiring"],
   // Descarta quem oferece serviço, vaga sem pagamento e funções fora das suas áreas (título)
@@ -165,12 +168,13 @@ function classify(entry, cfg, sub) {
   const areas = {};
   for (const s of SKILLS) areas[s] = titleHasSkill ? inTitle[s] : inText[s];
   areas.game = inTitle.game || inText.game || GAME_SUBS.includes(sub.toLowerCase());
+  areas.mobile = inTitle.mobile || inText.mobile;
 
   const hit = ROUTING.find((r) => r.test(areas));
   const found = Object.keys(areas).filter((a) => areas[a]).map((a) => AREA_LABELS[a]);
   if (hit) return { route: hit.key, label: hit.label, areas: found };
   // Vaga paga de jogos sem área clara: vai para "outras vagas"
-  if (areas.game) return { route: "other", label: "Other", areas: found };
+  if (areas.game && !SKILLS.some((s) => areas[s])) return { route: "other", label: "Other", areas: found };
   return null;
 }
 
